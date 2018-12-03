@@ -27,5 +27,3 @@ for line in file:
                 overlapping += 1
 
 print overlapping
-
-# 24479 not the answer
