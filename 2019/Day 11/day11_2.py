@@ -150,14 +150,14 @@ for i in range(len(file_nums)):
 
 painted_map = run_program(numbers)
 
-img = Image.new('RGB', (100, 10), "green")
+img = Image.new('RGB', (100, 10), "black")
 pixels = img.load()
 
 for row in range(10):
     for col in range(100):
         pos = (col-50, row-5)   
         if pos in painted_map.keys() and painted_map[pos] == 1:
-            pixels[col, row] = [255,255,255]
+            pixels[col, 9-row] = (255,255,255)
 
 img.show()
 
