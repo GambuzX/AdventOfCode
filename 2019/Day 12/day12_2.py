@@ -1,4 +1,5 @@
 import re
+from math import gcd
 
 def position_diff(val1, val2):
     if val1 > val2:
@@ -14,58 +15,33 @@ class Moon:
         self.id = id
         self.position = initial_pos
         self.velocity = [0, 0, 0]
-        self.compared_to = []
-    
-    def update_gravity(self, moon2):        
-        self.compared_to.append(moon2.id)
-        self.velocity[0] += position_diff(moon2.position[0], self.position[0])
-        self.velocity[1] += position_diff(moon2.position[1], self.position[1])
-        self.velocity[2] += position_diff(moon2.position[2], self.position[2])
-    
-    def update_position(self):
-        self.position[0] += self.velocity[0]
-        self.position[1] += self.velocity[1]
-        self.position[2] += self.velocity[2]
 
-    def potential_energy(self):
-        return abs(self.position[0]) + abs(self.position[1]) + abs(self.position[2])
+def moons_dim(moons, dim):
+    return [[moon.position[dim], moon.velocity[dim]] for moon in moons]
 
-    def kinetic_energy(self):
-        return abs(self.velocity[0]) + abs(self.velocity[1]) + abs(self.velocity[2])
-    
-    def total_energy(self):
-        return self.potential_energy() * self.kinetic_energy()
+def evolve_dimension(dimension_vals):
+    for moon_i, moon in enumerate(dimension_vals):
+        for other in dimension_vals[moon_i+1:]:
+            #determine increment
+            inc = 1 if moon[0] < other[0] else -1 if moon[0] > other[0] else 0
 
-def apply_gravity(moons):
-    for moon in moons:
-        moon.compared_to = []
+            #update velocity
+            moon[1], other[1] = moon[1] + inc, other[1] - inc
+    #update positions
+    for moon in dimension_vals:
+        moon[0] += moon[1]
 
-    for i1 in range(len(moons)):
-        for i2 in range(len(moons)):
-            if i1 == i2:
-                continue
-            
-            moon1 = moons[i1]
-            moon2 = moons[i2]
+    return dimension_vals
 
-            # already compared
-            if moon1.id in moon2.compared_to:
-                continue
+def steps_to_loop(initial_dim):
+    step = 1
+    curr_vals = [d[:] for d in initial_dim]
+    while evolve_dimension(curr_vals) != initial_dim:
+        step += 1
+    return step
 
-            moon1.update_gravity(moon2)
-            moon2.update_gravity(moon1)
-
-def apply_velocity(moons):
-    for moon in moons:
-        moon.update_position()
-
-def system_energy(moons):
-    total = 0
-    for moon in moons:
-        total += moon.total_energy()
-    return total
-
-
+def lcm(a,b):
+    return a*b//gcd(a,b)
 
 with open('input.txt', 'r') as handle:
     lines = handle.read().split('\n')
@@ -78,9 +54,9 @@ for i in range(len(lines)):
     z = int(vals[3])
     moons.append(Moon(i, [x,y,z]))
 
-N_STEPS = 1000
-for step in range(N_STEPS):
-    apply_gravity(moons)
-    apply_velocity(moons)
 
-print(system_energy(moons))
+x_loop = steps_to_loop(moons_dim(moons, 0))
+y_loop = steps_to_loop(moons_dim(moons, 1))
+z_loop = steps_to_loop(moons_dim(moons, 2))
+
+print(lcm(lcm(x_loop, y_loop), z_loop))
